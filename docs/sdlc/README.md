@@ -45,7 +45,7 @@ Core behaviour it cannot ship without:
 - Record a timestamp for each clock-in and clock-out per employee.
 - Track break start/stop between clock-in and clock
 
-**Documentation version:** v1
+**Documentation version:** v2
 <!-- sdlc:auto:end overview -->
 
 ## Contents
@@ -54,7 +54,7 @@ Core behaviour it cannot ship without:
 | Document | State |
 |---|---|
 | [Requirements](requirements/README.md) | v1 approved |
-| [Architecture](architecture/README.md) | 5 entries |
+| [Architecture](architecture/README.md) | 15 entries |
 | [Development](development/README.md) | 1 entry |
 | [Testing](testing/README.md) | 1 entry |
 | [Deployment](deployment/README.md) | 1 entry |
@@ -70,7 +70,7 @@ Core behaviour it cannot ship without:
 | [Runbook](deployment/runbook.md) | not deployed yet |
 | [Release notes](deployment/release-notes.md) | 0 releases |
 | [Traceability matrix](traceability-matrix.md) | 24 requirements |
-| [Changelog](CHANGELOG.md) | 1 version |
+| [Changelog](CHANGELOG.md) | 2 versions |
 <!-- sdlc:auto:end contents -->
 
 ## Open gaps
@@ -90,10 +90,8 @@ Core behaviour it cannot ship without:
 
 ### Architecture
 
-- No observability/monitoring, log-retention, or backup/DR specifics are stated beyond 'encrypted at rest' and 'standard availability'.
-- No API authentication token (JWT) expiry/refresh duration is specified.
-- Architecture does not clarify whether daily-overtime hours are excluded from the weekly regular total before the 40h weekly threshold is applied (same double-counting ambiguity inherited from requirements, not resolved at the architecture level).
-- JWT expiry/refresh strategy is not specified in the architecture input.
+- Industry context is stated as healthcare but no regulation list (e.g. HIPAA) or domain skill checklist was provided in this input -- a human should confirm whether any healthcare-specific regulations apply beyond the GDPR-style baseline implemented, since the requirements assert no PHI is stored.
+- No explicit mapping from architecture decisions to specific US-00x requirement IDs was provided; traceability to the 24 known requirement keys needs confirmation.
 
 ### Development
 
