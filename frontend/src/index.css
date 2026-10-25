@@ -1,18 +1,24 @@
 @import "tailwindcss";
 
+/* Brand tokens, mirrored from src/lib/brand.ts (the source of truth generated
+   screens import directly). These drive the app shell (src/App.tsx) and the
+   shared component kit (src/lib/ui.tsx), which read CSS custom properties
+   rather than importing brand.ts, so a brand change repaints both without
+   recompiling a screen. Keep the two in sync if the brand ever changes. */
 :root {
-  --brand-primary: #2563eb;
-  --brand-accent: #7c3aed;
-  --brand-neutral: #64748b;
-  --brand-radius: 0.5rem;
-  --brand-font-heading: system-ui, sans-serif;
-  --brand-font-body: system-ui, sans-serif;
+  --brand-primary: #24630d;
+  --brand-accent: #ebee3a;
+  --brand-neutral: #1f2420;
+  --brand-radius: 0rem;
+  --brand-font-heading:
+    "Martian Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --brand-font-body: "Public Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --brand-surface: #ffffff;
-  --brand-border: #e2e8f0;
-  --brand-fg: #0f172a;
-  --brand-fg-muted: #64748b;
-  --brand-hover: #f1f5f9;
-  --brand-background: #ffffff;
+  --brand-border: rgba(31, 36, 32, 0.16);
+  --brand-fg: #1f2420;
+  --brand-fg-muted: rgba(31, 36, 32, 0.66);
+  --brand-hover: rgba(36, 99, 13, 0.08);
+  --brand-background: #dfe0e1;
 }
 
 body {

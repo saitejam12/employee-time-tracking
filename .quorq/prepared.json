@@ -1,0 +1,72 @@
+{
+  "architecture_npm": [
+    "axios",
+    "luxon"
+  ],
+  "key": {
+    "app_design_id": "6d0d490a-629a-4bf1-9933-0ccbfd63e130",
+    "app_design_version": 1,
+    "architecture_document_id": "9c588b56-5eb4-4ce2-b63a-e9e4b12d1e68",
+    "architecture_version": 1
+  },
+  "outcome": "prepared",
+  "packages": [
+    {
+      "ecosystem": "pypi",
+      "installed_version": "1.7.4",
+      "name": "passlib[bcrypt]",
+      "status": "installed",
+      "version": ">=1.7.4"
+    },
+    {
+      "ecosystem": "pypi",
+      "installed_version": "2.15.1",
+      "name": "PyJWT",
+      "status": "installed",
+      "version": ">=2.8.0"
+    },
+    {
+      "ecosystem": "pypi",
+      "installed_version": "6.12.5",
+      "name": "sendgrid",
+      "status": "installed",
+      "version": ">=6.11.0"
+    },
+    {
+      "ecosystem": "pypi",
+      "installed_version": "0.28.0",
+      "name": "arq",
+      "status": "installed",
+      "version": ">=0.26"
+    },
+    {
+      "ecosystem": "pypi",
+      "installed_version": "2026.5",
+      "name": "tzdata",
+      "status": "installed",
+      "version": ">=2024.1"
+    },
+    {
+      "ecosystem": "npm",
+      "error": "already provided by the scaffold",
+      "name": "react-router-dom",
+      "status": "skipped",
+      "version": ">=6.26.0"
+    },
+    {
+      "ecosystem": "npm",
+      "installed_version": "3.7.2",
+      "name": "luxon",
+      "status": "installed",
+      "version": ">=3.5.0"
+    },
+    {
+      "ecosystem": "npm",
+      "installed_version": "1.20.0",
+      "name": "axios",
+      "status": "installed",
+      "version": ">=1.7.0"
+    }
+  ],
+  "prepared_by_run": "9e0e7f4d-9385-48f3-9db9-9c115430c529"
+}

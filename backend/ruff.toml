@@ -4,5 +4,21 @@ target-version = "py312"
 [lint]
 select = ["E", "F", "I", "B", "UP"]
 
+[lint.per-file-ignores]
+# The FastAPI `description=` here is the ticket text verbatim (duplicated by
+# the generator), not hand-written prose -- wrapping it would just reformat
+# content nobody is meant to edit here. The architecture, not line length,
+# owns this string.
+"app/main.py" = ["E501"]
+
+[lint.flake8-bugbear]
+# B008 flags a function call in an argument default because it is usually a
+# mutable-default bug -- but FastAPI's parameter markers (`Body`, `Depends`,
+# `Query`, `Security`, ...) return an immutable sentinel FastAPI itself
+# inspects, and that is how every FastAPI route declares one. Without this,
+# every stub and every real route that accepts a body or a dependency trips
+# the rule.
+extend-immutable-calls = ["fastapi.Body", "fastapi.Depends", "fastapi.Query", "fastapi.Security", "fastapi.Path"]
+
 [format]
 quote-style = "double"
