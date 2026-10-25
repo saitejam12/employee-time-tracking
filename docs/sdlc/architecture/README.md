@@ -5,112 +5,47 @@
 <!-- sdlc:auto:start narrative -->
 ## Overview
 
-### ARCH-001 · approved · source: architecture:summary/components
+### ARCH-001 · approved · source: architecture
 
-Architecture v1 (approved): React SPA + FastAPI backend + PostgreSQL, with a Redis-backed worker for background email/reminders via SendGrid, all on AWS.
+Approved v1 architecture: a React 19 SPA frontend, FastAPI 0.115 backend, PostgreSQL 16 database, a Redis-backed arq worker for background jobs, and SendGrid for email, hosted on AWS. Implements the product-owner-approved stack exactly, with no substitutions.
 
-Components:
-- web_frontend: React 19 responsive SPA covering sign-in, clock controls, personal hours, team oversight, corrections, admin settings, CSV export trigger; shows local-timezone timestamps and the first-sign-in privacy notice.
-- api_backend: FastAPI 0.115 -- auth/JWT, RBAC, clock-in/out and break state machine, worked-duration and rollup computation, overnight attribution, correction workflow, audit logging, CSV export, GDPR subject-rights operations; enqueues background jobs.
-- worker: arq worker (Python) consuming queued jobs for correction/reset emails via SendGrid and the scheduled missing-clock-out reminder check.
-- database: PostgreSQL 16, timezone-aware timestamps, encrypted at rest, stores employees/teams/shifts/breaks/corrections/settings/reset-tokens/rollups/audit-log.
-- queue: Redis 7 job queue and scheduler for background email and reminders.
-- email_service: SendGrid SaaS transactional email for correction events, password resets, and reminders.
-- Explicitly notes industry context is healthcare but confirms no PHI is stored and the system is not a medical device, so only the GDPR-style baseline (not clinical-grade controls) is implemented.
+Components: web_frontend (React 19 SPA) -- all screens: sign-in, clock controls, personal hours, team oversight, correction workflow, admin settings, CSV export trigger; shows local-timezone timestamps and the privacy notice at first sign-in. api_backend (FastAPI 0.115) -- authentication/JWT issuance, RBAC, clock-in/out and break state machine, worked-duration and daily/weekly rollups with regular/overtime split, overnight-shift attribution, correction workflow, audit logging, CSV export, GDPR subject-rights operations; enqueues background jobs. worker (arq worker, Python) -- consumes queued jobs to send correction and password-reset emails via SendGrid and runs the scheduled missing-clock-out reminder check, keeping clock-in/approval requests instant. database (PostgreSQL 16) -- stores employees, teams, shifts, breaks, correction_requests, org_settings, password_reset_tokens, daily_rollups, and audit_log with timezone-aware timestamps; enforces relationships and runs date arithmetic; encrypted at rest. queue (Redis 7) -- lightweight job queue and timed scheduler backing background email delivery and reminders. email_service (SendGrid SaaS) -- transactional delivery for correction submitted/approved/rejected, password-reset links, and optional reminders. Entities: teams(id,name,manager_id); employees(id,name,email,password_hash,role,team_id,timezone,expected_start_time,standard_daily_hours,is_active,privacy_notice_acked_at,created_at); shifts(id,employee_id,clock_in_at,clock_out_at,work_date,worked_minutes,status); breaks(id,shift_id,break_start_at,break_end_at); daily_rollups(id,employee_id,work_date,regular_minutes,overtime_minutes,break_minutes,is_missing_late,is_under_hours); correction_requests(id,employee_id,shift_id,proposed_clock_in_at,proposed_clock_out_at,reason,status,reviewed_by,decision_reason,reviewed_at,created_at); org_settings(id,daily_threshold_hours,weekly_threshold_hours,missing_clockout_reminder_enabled,reminder_window_hours); password_reset_tokens(id,employee_id,token_hash,expires_at,used_at); audit_log(id,actor_id,action,entity_type,entity_id,before_value,after_value,created_at). Endpoints span auth (/auth/login, /auth/me, /auth/password-reset/request, /auth/password-reset/confirm, /auth/privacy-notice/ack), clocking (/clock/in, /clock/out, /clock/break/start, /clock/break/stop), personal views (/me/dashboard, /me/hours), team oversight (/team/records, /team/flags, /team/corrections), corrections (/corrections, /corrections/{id}/approve, /corrections/{id}/reject), admin (/employees POST/PATCH/DELETE, /records/{shift_id}, /settings GET/PATCH), export (/export/timesheet.csv), and privacy/audit (/privacy/{employee_id}/export, DELETE /privacy/{employee_id}, /audit-log). Deployment nodes: frontend_static (React SPA on S3+CloudFront), api_service (FastAPI on ECS Fargate, Python 3.12/uvicorn), worker_service (arq worker on ECS Fargate), postgres_db (Amazon RDS for PostgreSQL 16), redis_queue (Redis 7 container/ElastiCache), sendgrid (SaaS API). Technology decisions and rationale: React 19 over Next.js/Vue -- in-house responsive SPA covering every screen for under ~50 staff with no public/SEO pages, served statically via CloudFront; FastAPI 0.115 over Django REST Framework/Flask -- the product is mostly server-side date/time logic (rollups, overtime split, overnight attribution, timezone handling, RBAC, audit trail) handled comfortably at low concurrency; PostgreSQL 16 over MySQL/SQLite -- attendance data is relational and time-sensitive, native timezone-aware timestamptz and reliable date arithmetic; AWS over Azure/GCP -- region choice for the mixed-region GDPR-style baseline, managed PostgreSQL (RDS) with encryption/backups, and cheap hosting for a small internal tool.
 
-**Related:** REQ-SCOPE-001, EPIC-001, EPIC-002, EPIC-003, EPIC-006, EPIC-008, EPIC-009, EPIC-010
+**Related:** EPIC-001, EPIC-002, EPIC-003, EPIC-004, EPIC-005, EPIC-006, EPIC-007, EPIC-008, EPIC-009, EPIC-010
 
-- ⚠ No explicit AWS region or data-residency configuration is specified, despite the stated mixed-region GDPR-style rationale for choosing AWS -- flagged for formalisation as the org grows.
+- ⚠ Architecture does not explicitly address WCAG accessibility implementation for the React SPA.
 
-### ARCH-002 · approved · source: architecture:critical_path:clock_in_out_overnight
+### ARCH-CP-001 · approved · source: architecture:critical_path:Clock in/out with overnight attribution
 
-Design for the clock-in/out and break state machine, including overnight-shift attribution.
+Describes the shift state machine from clock-in through breaks to clock-out, including overnight-shift attribution to the start day.
 
-Employee clocks in, creating an open shift (a second overlapping open shift is blocked). Employee may start/stop unpaid breaks; any running break is auto-ended at clock-out. Worked duration = clock-out minus clock-in minus unpaid breaks. The shift is attributed to the work_date of its start, in the employee's timezone, even if it ends after midnight.
+Employee clocks in via POST /clock/in, creating an open shift (a second overlapping shift is blocked). Within the open shift the employee may start/stop unpaid breaks via POST /clock/break/start and /clock/break/stop. On POST /clock/out, any running break is auto-ended; worked duration is computed as clock-out minus clock-in minus unpaid breaks. The shift is attributed to the work_date of its start in the employee's configured timezone even if it ends after midnight, so overnight shifts roll up against their start day.
 
-**Related:** US-004, US-005, US-006, EPIC-002
+**Related:** US-004, US-005, US-006, AC-009, AC-010, AC-011, AC-012, AC-013, AC-014, AC-015, AC-016
 
-### ARCH-003 · approved · source: architecture:critical_path:correction_approval
+### ARCH-CP-002 · approved · source: architecture:critical_path:Correction request approval
 
-Design for the correction-request submission and manager approval/rejection flow.
+Describes the correction-request lifecycle from employee submission through manager decision, including audit and notification handling.
 
-Employee submits a correction with proposed times and reason; saved pending, manager emailed (via queue). Manager approves or rejects, scoped to their own team only. Approval updates the record and recomputes totals; rejection leaves the record unchanged and records a reason. Both outcomes write an audit entry and enqueue the employee notification email so the approve/reject request itself stays instant.
+Employee submits a correction with proposed times and a reason via POST /corrections; it is saved pending and the manager is emailed (job enqueued, not inline). The manager reviews via GET /team/corrections and acts only on their own team: POST /corrections/{id}/approve updates the affected record, recomputes totals, writes an audit entry, and enqueues an employee notification email; POST /corrections/{id}/reject leaves the record unchanged, records the reason, writes an audit entry, and enqueues an employee notification email. Enqueuing the email (rather than sending inline) keeps the approve/reject request itself instant.
 
-**Related:** US-013, US-014, EPIC-006
+**Related:** US-013, US-014, AC-030, AC-031, AC-032, AC-033
 
-### ARCH-004 · approved · source: architecture:critical_path:rollup_overtime
+### ARCH-CP-003 · approved · source: architecture:critical_path:Daily and weekly rollup with overtime split
 
-Design for daily/weekly rollup computation and the regular/overtime split.
+Describes how worked time is totaled per day and week and split into regular vs overtime against org-wide, admin-configurable thresholds.
 
-On shift close or record edit, daily totals (worked minus unpaid breaks) are summed and split regular vs overtime against org-wide thresholds (default 8h/day). Weekly totals sum daily totals and apply the weekly threshold (default 40h). Changing thresholds in org_settings triggers org-wide recomputation.
+On shift close or record edit, the daily total (worked minus unpaid breaks) is summed and split into regular vs overtime against the org-wide daily threshold (default 8h). Weekly totals sum the daily totals and apply the weekly threshold (default 40h) to classify overtime. Changing thresholds via PATCH /settings triggers org-wide recomputation of existing rollups and exports.
 
-**Related:** US-007, US-008, EPIC-003
+**Related:** US-007, US-008, US-020, AC-017, AC-018, AC-019, AC-020, AC-021
 
-### ARCH-005 · approved · source: architecture:critical_path:auth_rbac
+### ARCH-CP-004 · approved · source: architecture:critical_path:Authentication and role-based access
 
-Design for authentication, JWT-based sessions, and role-based data scoping.
+Describes sign-in, JWT-based role/team scoping, and the password-reset flow.
 
-Admin-provisioned accounts sign in with email/password; failures return a generic message. JWT carries role and team. Every data request is filtered by role: employees see only their own data, managers see their team plus themselves, HR/Admin see org-wide. Password reset issues a time-limited, single-use link emailed via the queue.
+Admin-provisioned accounts sign in via POST /auth/login with email and password; failures return a generic error message. A successful sign-in issues a JWT carrying role and team. Every subsequent data request is filtered by role: employees see only their own data, managers see their team plus themselves, HR/Admin see the whole organisation. Password reset issues a time-limited, single-use link emailed via the background queue (POST /auth/password-reset/request, POST /auth/password-reset/confirm).
 
-**Related:** US-001, US-002, US-003, EPIC-001
-
-### ARCH-006 · approved · source: architecture:entities
-
-Relational data model backing attendance, corrections, settings, and the audit trail.
-
-- teams: id, name, manager_id.
-- employees: id, name, email, password_hash, role, team_id, timezone, expected_start_time, standard_daily_hours, is_active, privacy_notice_acked_at, created_at.
-- shifts: id, employee_id, clock_in_at, clock_out_at, work_date, worked_minutes, status.
-- breaks: id, shift_id, break_start_at, break_end_at.
-- daily_rollups: id, employee_id, work_date, regular_minutes, overtime_minutes, break_minutes, is_missing_late, is_under_hours.
-- correction_requests: id, employee_id, shift_id, proposed_clock_in_at, proposed_clock_out_at, reason, status, reviewed_by, decision_reason, reviewed_at, created_at.
-- org_settings: id, daily_threshold_hours, weekly_threshold_hours, missing_clockout_reminder_enabled, reminder_window_hours.
-- password_reset_tokens: id, employee_id, token_hash, expires_at, used_at.
-- audit_log: id, actor_id, action, entity_type, entity_id, before_value, after_value, created_at.
-
-**Related:** EPIC-001, EPIC-002, EPIC-003, EPIC-005, EPIC-006, EPIC-008, EPIC-010
-
-### ARCH-007 · approved · source: architecture:endpoints
-
-REST API surface grouped by function: auth, clocking, personal/team views, corrections, admin/settings, export, privacy, and audit.
-
-- Auth: POST /auth/login, GET /auth/me, POST /auth/password-reset/request, POST /auth/password-reset/confirm, POST /auth/privacy-notice/ack.
-- Clocking: POST /clock/in, POST /clock/out, POST /clock/break/start, POST /clock/break/stop.
-- Personal views: GET /me/dashboard, GET /me/hours.
-- Team views: GET /team/records, GET /team/flags, GET /team/corrections.
-- Corrections: POST /corrections, GET /corrections, POST /corrections/{id}/approve, POST /corrections/{id}/reject.
-- Admin: POST /employees, PATCH /employees/{id}, DELETE /employees/{id}, PATCH /records/{shift_id}, GET /settings, PATCH /settings.
-- Export: GET /export/timesheet.csv.
-- Privacy/audit: GET /privacy/{employee_id}/export, DELETE /privacy/{employee_id}, GET /audit-log.
-
-**Related:** US-001, US-002, US-004, US-005, US-009, US-010, US-011, US-013, US-014, US-017, US-019, US-020, US-021, US-022, US-023
-
-### ARCH-008 · approved · source: architecture:deployment_nodes
-
-AWS deployment topology for the SPA, API, worker, database, queue, and email provider.
-
-- frontend_static: React SPA on S3 + CloudFront (static build/CDN).
-- api_service: FastAPI on ECS Fargate, Python 3.12 container (uvicorn).
-- worker_service: arq worker on ECS Fargate, Python 3.12 container.
-- postgres_db: Amazon RDS for PostgreSQL 16 (managed).
-- redis_queue: Redis 7 (container/ElastiCache, redis:7-alpine).
-- sendgrid: SendGrid transactional email (SaaS API).
-- Sized for standard (non-clinical-grade) availability per NFR-010, matching the under-50-employee, low-concurrency scale (NFR-014).
-
-**Related:** NFR-005, NFR-010, NFR-013, NFR-014
-
-- ⚠ No explicit region, backup/retention schedule, or disaster-recovery target is stated for RDS/ElastiCache beyond 'standard availability'.
-
-### ARCH-009 · approved · source: architecture:technology_decisions
-
-Rationale for the four approved technology choices, each with alternatives considered.
-
-- Frontend: React 19 (vs. Next.js, Vue) -- in-house responsive SPA for under ~50 staff, no public/SEO pages, served statically via CloudFront.
-- Backend: FastAPI 0.115 (vs. Django REST Framework, Flask) -- suited to server-side date/time logic (rollups, overtime split, overnight attribution, timezone handling, RBAC, audit trail) at low concurrency with easy CSV output.
-- Database: PostgreSQL 16 (vs. MySQL, SQLite) -- enforces relational integrity across employee/team/shift/break/correction/audit entities, native timezone-aware timestamptz, reliable date arithmetic.
-- Cloud: AWS (vs. Azure, GCP) -- region choice for mixed-region GDPR-style baseline, managed PostgreSQL (RDS) with encryption/backups, cheap hosting for a small internal tool.
-
-**Related:** REQ-SCOPE-001
+**Related:** US-001, US-002, US-003, AC-001, AC-002, AC-006, AC-007, AC-008
 <!-- sdlc:auto:end narrative -->
 
 <!-- sdlc:auto:start building-blocks -->

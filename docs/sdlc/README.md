@@ -54,11 +54,11 @@ Core behaviour it cannot ship without:
 | Document | State |
 |---|---|
 | [Requirements](requirements/README.md) | v1 approved |
-| [Architecture](architecture/README.md) | 9 entries |
-| [Development](development/README.md) | 11 entries |
-| [Testing](testing/README.md) | 1 entry |
-| [Deployment](deployment/README.md) | 1 entry |
-| [Maintenance](maintenance/README.md) | 1 entry |
+| [Architecture](architecture/README.md) | 5 entries |
+| [Development](development/README.md) | 17 entries |
+| [Testing](testing/README.md) | 0 entries |
+| [Deployment](deployment/README.md) | 0 entries |
+| [Maintenance](maintenance/README.md) | 0 entries |
 | [Data model](architecture/data-model.md) | generated |
 | [API (OpenAPI)](architecture/api/openapi.yaml) | generated |
 | [Decisions (ADRs)](architecture/adr/README.md) | 4 decisions |
@@ -78,38 +78,17 @@ Core behaviour it cannot ship without:
 <!-- sdlc:auto:start open-gaps -->
 ### Requirements
 
-- Concrete password complexity/length policy referenced by AC-005/NFR-004 is not defined in the input.
-- The 'no PHI / not a medical device' classification is asserted in the requirements but not shown as confirmed by a compliance/legal reviewer -- recommend explicit human sign-off given the project is tagged Healthcare industry (see top-level gaps).
+- Human confirmation needed that the system truly never stores PHI, given the Healthcare industry tag -- this assumption underpins the decision to skip HIPAA-specific controls.
+- No WCAG accessibility requirement is specified anywhere in requirements despite the Healthcare industry context; confirm whether accessibility compliance is required for any patient- or clinician-facing use.
 
 ### Architecture
 
-- No explicit AWS region or data-residency configuration is specified, despite the stated mixed-region GDPR-style rationale for choosing AWS -- flagged for formalisation as the org grows.
-- No explicit region, backup/retention schedule, or disaster-recovery target is stated for RDS/ElastiCache beyond 'standard availability'.
+- Architecture does not explicitly address WCAG accessibility implementation for the React SPA.
 
 ### Development
 
-- The plan lists sprint goals and a separate backlog of epics/stories/tasks with points and assigned agent roles, but does not map specific backlog items to specific sprint numbers -- which items shipped in which sprint cannot be confirmed from this input.
-- No completion/status field (e.g. done, in-progress, blocked) was provided for any backlog item, so actual build progress against this plan is unknown.
-- No reported completion status for US-001/002/003 or their tasks.
-- No reported completion status for US-004/005/006 or their tasks.
-- No reported completion status for US-007/008 or their tasks.
-- No reported completion status for US-009.
-- No reported completion status for US-010/011/012.
-- No reported completion status for US-013/014 or their tasks.
-- No reported completion status for US-015/016 or their tasks.
-- No reported completion status for US-017/018/019/020 or their tasks.
-- No reported completion status for US-021.
-- No reported completion status for US-022/023/024.
-
-### Testing
-
-- Testing phase has not started: no test plans, test cases, execution results, coverage data, or defect records were provided.
-
-### Deployment
-
-- No deployment recorded yet: no release, environment promotion, or rollout/rollback history was provided, despite an approved deployment architecture (ARCH-008) existing.
-
-### Maintenance
-
-- No maintenance phase input: no incidents, monitoring data, support tickets, or patch history were provided, consistent with no deployment having occurred yet.
+- Input does not specify which backlog items (stories/tasks) are assigned to this sprint; only the sprint goal and capacity were given, not an item-to-sprint mapping.
+- No implementation/completion status (commits, PR merges, done/in-progress) was reported for any item in this epic -- plan only.
+- No implementation/completion status was reported for any item in this epic -- plan only.
+- No implementation/completion status was reported for this item -- plan only.
 <!-- sdlc:auto:end open-gaps -->

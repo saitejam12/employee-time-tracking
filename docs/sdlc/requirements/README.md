@@ -7,132 +7,86 @@
 
 ### REQ-EPIC-001 · draft · source: requirements:EPIC-001
 
-Admin-provisioned email+password sign-in (no self-signup), emailed password reset, and role-based access control across Employee, Manager, HR/Admin.
+Admin-provisioned email/password sign-in, self-service password reset, and strict role-based access control across Employee, Manager, and HR/Admin roles. No self-signup is permitted.
 
-- US-001 (critical): employee signs in with email/password from any device to a personal dashboard (AC-001); wrong credentials show one generic 'invalid credentials' message, never revealing which field failed (AC-002); no self-signup option exists anywhere (AC-003).
-- US-002 (high): user requests a reset link by email, gets a neutral confirmation whether or not the email exists (AC-004); link is time-limited, single-use, and setting a new password per policy re-enables sign-in (AC-005).
-- US-003 (critical): employees see only their own data (AC-006); managers see only their assigned team plus themselves (AC-007); HR/Admin see and edit org-wide (AC-008).
-- Assumption stated in input: auth is email+password only; role-based limits enforce a mixed-region privacy baseline.
-- GDPR-style equivalent: minimum-necessary / role-limited access (NFR-001) and admin-only provisioning (NFR-002) map to the domain skill's 'minimum-necessary access' and 'consent/BAA' themes.
+US-001 (critical): employee signs in with email+password from any device and lands on a personal dashboard with clock controls and hours (AC-001); wrong credentials get one generic 'invalid credentials' message without indicating which field was wrong (AC-002); no self-signup option exists, accounts are admin-provisioned only (AC-003). US-002 (high): user requests a reset from the sign-in page; a time-limited link is emailed to the registered address with a neutral confirmation shown regardless of whether the email exists (AC-004); setting a new password meeting the policy updates the account and the link becomes single-use (AC-005). US-003 (critical): employees see only their own data (AC-006); managers see their team plus themselves (AC-007); HR/Admin see and edit org-wide (AC-008). NFR-001 enforces role-based need-to-know access; NFR-002 confirms admin-only provisioning via invite/reset links; NFR-003/NFR-004 define safe failure messaging and single-use, time-limited reset tokens.
 
 **Related:** US-001, US-002, US-003, NFR-001, NFR-002, NFR-003, NFR-004
 
-- ⚠ Concrete password complexity/length policy referenced by AC-005/NFR-004 is not defined in the input.
-
 ### REQ-EPIC-002 · draft · source: requirements:EPIC-002
 
-Honour-system clock in/out and unpaid breaks from any personal device, with timezone-correct and overnight-aware timestamps.
+Employees clock in/out from any personal device on the honour system (no geofencing/kiosk/biometric) and take unpaid breaks inside an open shift; timestamps use the employee's configured timezone and overnight shifts are supported.
 
-- US-004 (critical): Clock In opens a shift and is recorded in local timezone (AC-009); Clock Out closes it and computes worked duration (AC-010); Clock In is disabled while a shift is open, preventing overlap (AC-011); a shift crossing midnight is attributed to its start day (AC-012).
-- US-005 (high): Start Break / Stop Break records break timestamps within an open shift (AC-013, AC-014); if clock-out happens mid-break, the user is prompted or the break auto-ends and is excluded from worked time (AC-015).
-- US-006 (high): clock events are stored and displayed in the employee's configured timezone, and day boundaries for rollups use that timezone (AC-016).
-- Explicitly out of scope: geofencing, kiosk/shared PIN mode, biometric clock-in; accuracy instead relies on manager review and corrections (NFR-015, accepted risk).
+US-004 (critical): Clock In records a timestamp and opens the shift (AC-009); Clock Out records a timestamp, closes the shift, and computes worked duration (AC-010); Clock In is unavailable while a shift is open, preventing overlap (AC-011); a shift starting before midnight and ending after it is attributed to its start day (AC-012). US-005 (high): Start Break records a break-start timestamp (AC-013); Stop Break records break-end and subtracts break time from worked duration (AC-014); an in-progress break is auto-ended or the user is prompted at clock-out, and break time is never counted as worked (AC-015). US-006 (high): clock events are stored and displayed in the employee's configured timezone; day boundaries for rollups use that timezone (AC-016). NFR-015 is an accepted risk: honour-system clock-in with no geofencing/kiosk/biometric, relying on manager review and corrections for accuracy. NFR-012 requires clock actions to stay instant (emails run in background).
 
-**Related:** US-004, US-005, US-006, NFR-015
+**Related:** US-004, US-005, US-006, NFR-012, NFR-015
 
 ### REQ-EPIC-003 · draft · source: requirements:EPIC-003
 
-Daily/weekly worked-hour totals and a configurable regular-vs-overtime split, defaulting to 8h/day and 40h/week.
+Computes worked duration per shift excluding unpaid breaks, rolls it up per day and per week, and splits regular vs overtime hours against admin-configurable thresholds defaulting to 8h/day and 40h/week.
 
-- US-007 (critical): daily total = sum of (clock-out minus clock-in minus unpaid breaks) for shifts attributed to that day (AC-017); weekly total = sum of daily totals (AC-018).
-- US-008 (high): at 8h/day default, a 10h day splits to 8h regular + 2h overtime (AC-019); weekly hours beyond 40h default are overtime (AC-020); changing the thresholds recomputes the split org-wide (AC-021).
-- Assumption: thresholds are org-wide and admin-configurable; overnight shifts count on their start day.
+US-007 (critical): daily total equals the sum of (clock-out minus clock-in minus unpaid breaks) for shifts attributed to that day (AC-017); weekly total equals the sum of daily totals for the week (AC-018). US-008 (high): at the 8h/day default, 10h worked yields 8h regular + 2h overtime (AC-019); weekly hours beyond the 40h default are overtime (AC-020); changing thresholds recomputes the regular/overtime split org-wide (AC-021).
 
-**Related:** US-007, US-008, EPIC-002
+**Related:** US-007, US-008
 
 ### REQ-EPIC-004 · draft · source: requirements:EPIC-004
 
-Employee-facing view of own daily/weekly hours, break time, and live shift status.
+Employees can view their own daily and weekly hours, broken into regular/overtime/break time, plus their current shift status.
 
-- US-009 (high): hours view shows per-day/per-week regular, overtime, and break hours in the employee's timezone (AC-022); dashboard shows live status (clocked in / on break / clocked out) with elapsed time (AC-023); employees see only their own data, never another employee's (AC-024).
+US-009 (high): the hours view shows per-day/per-week regular, overtime and break hours in the employee's timezone (AC-022); the dashboard shows current shift status (clocked in / on break / clocked out) and elapsed time (AC-023); employees can see only their own hours, not any other employee's (AC-024).
 
-**Related:** US-009, EPIC-003
+**Related:** US-009
 
 ### REQ-EPIC-005 · draft · source: requirements:EPIC-005
 
-Manager view of team clock events, hours, and flags for missing/late or under-hours days; managers also clock in on their own employee account.
+Managers view their team's attendance records and hours, see missing/late and under-expected-hours flags, and clock in/out themselves as ordinary employees.
 
-- US-010 (high): manager sees each team member's clock events and daily/weekly hours (regular/overtime/break) for a selected period (AC-025), scoped to their own team only (AC-026).
-- US-011 (high): an employee not clocked in by their configured expected start time is flagged missing/late (AC-027); a day under the employee's standard daily hours is flagged under-hours for review (AC-028). Depends on per-employee schedule settings from EPIC-008.
-- US-012 (medium): managers clock in/out and take breaks via their own employee account, rolled up identically to any employee (AC-029). No full rostering is in scope.
+US-010 (high): manager sees each team member's clock events and daily/weekly hours (regular, overtime, break) for a selected period (AC-025), restricted to their own assigned team (AC-026). US-011 (high): an employee is flagged missing/late if not clocked in by their expected start time (AC-027); a day is flagged under-expected-hours if worked time falls below the employee's standard daily hours (AC-028). US-012 (medium): managers clock in/out and take breaks on their own employee account, tracked identically to any employee (AC-029).
 
-**Related:** US-010, US-011, US-012, EPIC-008
+**Related:** US-010, US-011, US-012
 
 ### REQ-EPIC-006 · draft · source: requirements:EPIC-006
 
-Employees request corrections to clock records; managers approve or reject, updating records and the audit trail.
+Employees request corrections to their records (e.g. a forgotten clock-out); the relevant manager approves or rejects, driving the audit trail and email notifications.
 
-- US-013 (high): employee submits proposed times + reason; request is saved pending and the manager is emailed (AC-030); employee can track status as pending/approved/rejected (AC-031).
-- US-014 (high): manager approves a team request -> record updated, totals recomputed, employee emailed, audit entry written (AC-032); manager rejects with a reason -> record unchanged, employee emailed with reason, audit entry written (AC-033).
+US-013 (high): employee submits proposed times plus a reason; the request is saved pending and the manager is emailed (AC-030); the employee can view the request's status as pending, approved, or rejected (AC-031). US-014 (high): manager approval updates the affected record, recomputes totals, emails the employee, and writes an audit entry (AC-032); manager rejection with a reason leaves the record unchanged, emails the employee with the reason, and writes an audit entry (AC-033).
 
-**Related:** US-013, US-014, EPIC-007, EPIC-010
+**Related:** US-013, US-014
 
 ### REQ-EPIC-007 · draft · source: requirements:EPIC-007
 
-Transactional email for correction workflow events, plus an optional admin-toggled missing-clock-out reminder.
+Transactional email notifications cover correction-submitted (to manager), correction approved/rejected (to employee), and an optional missing-clock-out reminder.
 
-- US-015 (medium): manager emailed when a correction is submitted (AC-034); employee emailed with outcome (and reason if rejected) when decided (AC-035); if the email provider is not configured, the in-app action still completes and the failure is only logged (AC-036, NFR-011).
-- US-016 (low): if admin-enabled and a shift stays open past a configured window, the employee gets a reminder email (AC-037); no email is sent if the feature is disabled (AC-038).
-- Emails and reminders run in the background (queue) so clock actions and approvals stay instant (NFR-012).
-- Assumption: requires a transactional email provider credential (API key/SMTP).
+US-015 (medium): manager is emailed when a correction is submitted (AC-034); employee is emailed the decision, including the reason if rejected (AC-035); if the email provider isn't configured, the in-app action still completes and the failure is logged rather than blocking the workflow (AC-036, NFR-011). US-016 (low): if reminders are enabled by an admin and a shift stays open beyond the configured window, the employee receives a reminder email prompting a clock-out or correction request (AC-037); no email is sent when the feature is disabled (AC-038).
 
-**Related:** US-015, US-016, NFR-011, NFR-012
+**Related:** US-015, US-016, NFR-011
 
 ### REQ-EPIC-008 · draft · source: requirements:EPIC-008
 
-HR/Admin manage employee accounts, per-employee schedule/timezone, any attendance record, and org-wide overtime thresholds.
+HR/Admin provision and deactivate employee accounts, set per-employee schedule/timezone, edit any attendance record, and configure org-wide overtime thresholds.
 
-- US-017 (critical): HR/Admin creates an employee with name/email/role/team; employee sets password via emailed invite (AC-039); deactivating blocks sign-in while historical records are retained unless removed by a privacy erasure request (AC-040, NFR-008).
-- US-018 (high): HR/Admin sets timezone, expected start time, and standard daily hours per employee, driving rollups and missing/late flags (AC-041).
-- US-019 (high): HR/Admin edits any clock/break times outside the correction-request path; totals recompute and the change is audit-logged with before/after (AC-042).
-- US-020 (medium): overtime thresholds default to 8h/day, 40h/week (AC-043); changes apply org-wide to rollups and exports (AC-044).
-- Assumption: accounts are admin-provisioned only, no self-signup (NFR-002).
+US-017 (critical): HR/Admin creates an employee with name/email/role/team; the employee sets a password via an emailed invite/reset link (AC-039); deactivation blocks sign-in while historical records are retained for reporting unless removed via a privacy request (AC-040, NFR-008). US-018 (high): HR/Admin sets each employee's timezone, expected start time, and standard daily hours, which drive their rollups and missing/late flags (AC-041). US-019 (high): HR/Admin edits any clock or break time; totals recompute and the change is captured in the audit log with actor, before/after values, and timestamp (AC-042). US-020 (medium): overtime thresholds default to 8h/day and 40h/week (AC-043); changes apply org-wide to rollups and exports (AC-044). NFR-002 confirms accounts are admin-provisioned only, no self-signup.
 
 **Related:** US-017, US-018, US-019, US-020, NFR-002, NFR-008
 
 ### REQ-EPIC-009 · draft · source: requirements:EPIC-009
 
-HR/Admin exports a CSV timesheet for a selected pay period, for manual payroll processing (no direct payroll integration).
+HR/Admin exports a CSV timesheet for a selected pay period for manual payroll use; there is no direct payroll integration.
 
-- US-021 (high): HR/Admin selects a pay-period date range and exports a CSV with per-employee regular hours, overtime hours, break time, and daily/weekly totals (AC-045); overnight shifts are counted on their start day, consistent with in-app rollups (AC-046); org-wide export is restricted to HR/Admin only -- managers and employees cannot access it (AC-047).
+US-021 (high): CSV includes per-employee regular hours, overtime hours, break time, and daily/weekly totals for the selected date range (AC-045); overnight shifts are counted on their start day, consistent with in-app rollups (AC-046); the org-wide export is restricted to HR/Admin and unavailable to managers or employees (AC-047).
 
-**Related:** US-021, EPIC-003
+**Related:** US-021
 
 ### REQ-EPIC-010 · draft · source: requirements:EPIC-010
 
-GDPR-style privacy baseline (role-limited access, consent notice, subject-rights), an audit log, and encryption in transit/at rest with standard (non-clinical) availability.
+GDPR-style privacy baseline for mixed-region staff: role-limited access, a privacy notice, subject-rights access/export/delete, a full audit log, encryption in transit and at rest, and explicitly standard (non-clinical) availability.
 
-- US-022 (medium): HR/Admin can generate a personal-data export for an access request (AC-048); can delete/irreversibly anonymise data for an approved erasure request, recorded in the audit log (AC-049); new employees see a privacy notice at first sign-in (AC-050).
-- US-023 (high): every record edit, correction submission, approval, and rejection writes an audit entry capturing actor, action, affected record, before/after values, and timestamp (AC-051); HR/Admin can review the log (AC-052).
-- US-024 (medium): all traffic is HTTPS/TLS (AC-053); data is encrypted at rest (AC-054); standard (non-clinical-grade) availability applies and no payment/billing functionality exists (AC-055).
-- GDPR-style equivalent / HIPAA note: NFR-007 explicitly states the system stores only attendance + basic identity data, holds no PHI, and is not a clinical or medical-device system -- HIPAA/HITECH, FDA SaMD/EU MDR, and HL7/FHIR/DICOM interoperability are treated as not applicable on that basis. Role-limited access (NFR-001), encryption (NFR-005), audit logging (US-023), and subject-rights handling (US-022) implement the GDPR-style baseline in place of clinical-grade controls.
+US-022 (medium): HR/Admin can generate an export of an employee's identity+attendance data for an access request (AC-048); can delete or irreversibly anonymise personal data for an approved erasure request, recorded in the audit log (AC-049); employees see a privacy notice explaining stored data and its purpose at first sign-in (AC-050). US-023 (high): every record edit, correction submission, approval, or rejection writes an audit entry with actor, action, affected record, before/after values, and timestamp (AC-051); HR/Admin can review the log (AC-052). US-024 (medium): browser-server traffic is HTTPS/TLS encrypted (AC-053); data is encrypted at rest (AC-054); standard, non-clinical-grade availability applies and no payment/billing functionality exists (AC-055, NFR-010 accepted risk). NFR-006: GDPR-style subject rights. NFR-007: the system stores only minimal attendance+identity data, explicitly no PHI, and is not a clinical/medical-device system. NFR-009: privacy notice shown at first sign-in. Compliance trace: the industry tag is Healthcare, but this requirement set explicitly states no PHI is stored and the system is not a medical device (NFR-007) -- so HIPAA/HITECH, HL7/FHIR/DICOM interoperability, and FDA SaMD/EU MDR medical-device rules are treated as not applicable here. The GDPR-style baseline (NFR-006, NFR-009) and audit logging (US-023) are the closest implemented equivalents to the domain skill's 'minimum-necessary access,' 'audit of who viewed/changed a record,' and 'patient consent' topics, applied to employee (not patient) data.
 
 **Related:** US-022, US-023, US-024, NFR-005, NFR-006, NFR-007, NFR-009, NFR-010
 
-- ⚠ The 'no PHI / not a medical device' classification is asserted in the requirements but not shown as confirmed by a compliance/legal reviewer -- recommend explicit human sign-off given the project is tagged Healthcare industry (see top-level gaps).
-
-### REQ-NFR-SET · draft · source: requirements:NFR-001..NFR-015
-
-Cross-cutting non-functional requirements covering security, privacy, compliance, availability, performance, compatibility, and scale.
-
-- Security: role-limited access (NFR-001), admin-only account provisioning (NFR-002), generic sign-in/reset messaging (NFR-003), single-use time-limited reset links (NFR-004), encryption in transit/at rest (NFR-005), accepted-risk honour-system clock-in with no geofencing/kiosk/biometric (NFR-015).
-- Privacy/compliance: GDPR-style subject rights -- access/export/delete (NFR-006); minimal data stored, no PHI, not clinical/medical-device (NFR-007); retain historical records after deactivation unless erased (NFR-008); privacy notice at first sign-in (NFR-009).
-- Availability (accepted risk): standard availability only, no clinical-grade 24/7 HA (NFR-010); email failures must not block actions (NFR-011).
-- Performance: clock-in/out and approvals must stay instant via background email/reminders (NFR-012).
-- Compatibility: single responsive web app, phone and desktop, no native apps (NFR-013).
-- Scale: sized for under ~50 employees, low concurrency (NFR-014).
-
-**Related:** US-001, US-002, US-003, US-004, US-014, US-015, US-016, US-017, US-022, US-024
-
-### REQ-SCOPE-001 · draft · source: requirements:tech-stack/services/scope
-
-Product-owner-approved technology stack and services for v1, plus explicitly out-of-scope capabilities.
-
-- Approved stack (design against exactly these, no substitution): Backend FastAPI 0.115; Cloud AWS; Database PostgreSQL 16; Frontend React 19.
-- Approved runtime services: SendGrid (SaaS email, env SENDGRID_API_KEY) and Redis as a queue (container redis:7-alpine); required API keys: REDIS_URL, SENDGRID_API_KEY.
-- Delivery scope: lightweight; requirements version 1.
-- Explicitly out of scope: geofenced/location-restricted clock-in and shared on-site kiosk/PIN mode; native mobile/desktop apps; direct HR/payroll system integration; biometric clock-in.
-- In-scope capability summary: clock in/out from any personal device, unpaid breaks, daily/weekly rollups, regular/overtime split at 8h/40h defaults, overnight-shift attribution to start day, per-employee timezone, personal hours view, employee sign-in.
+- ⚠ Human confirmation needed that the system truly never stores PHI, given the Healthcare industry tag -- this assumption underpins the decision to skip HIPAA-specific controls.
+- ⚠ No WCAG accessibility requirement is specified anywhere in requirements despite the Healthcare industry context; confirm whether accessibility compliance is required for any patient- or clinician-facing use.
 <!-- sdlc:auto:end narrative -->
 
 <!-- sdlc:auto:start summary -->
