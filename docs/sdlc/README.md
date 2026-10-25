@@ -45,7 +45,7 @@ Core behaviour it cannot ship without:
 - Record a timestamp for each clock-in and clock-out per employee.
 - Track break start/stop between clock-in and clock
 
-**Documentation version:** v2
+**Documentation version:** v3
 <!-- sdlc:auto:end overview -->
 
 ## Contents
@@ -55,14 +55,14 @@ Core behaviour it cannot ship without:
 |---|---|
 | [Requirements](requirements/README.md) | v1 approved |
 | [Architecture](architecture/README.md) | 15 entries |
-| [Development](development/README.md) | 1 entry |
+| [Development](development/README.md) | 18 entries |
 | [Testing](testing/README.md) | 1 entry |
 | [Deployment](deployment/README.md) | 1 entry |
 | [Maintenance](maintenance/README.md) | 1 entry |
 | [Data model](architecture/data-model.md) | generated |
 | [API (OpenAPI)](architecture/api/openapi.yaml) | generated |
 | [Decisions (ADRs)](architecture/adr/README.md) | 4 decisions |
-| [Sprint plan](development/sprint-plan.md) | not generated yet |
+| [Sprint plan](development/sprint-plan.md) | 6 sprints |
 | [Developer guide](development/developer-guide.md) | generated |
 | [API reference](development/api-reference.md) | 1 route |
 | [Test report](testing/test-report.md) | not run yet |
@@ -70,7 +70,7 @@ Core behaviour it cannot ship without:
 | [Runbook](deployment/runbook.md) | not deployed yet |
 | [Release notes](deployment/release-notes.md) | 0 releases |
 | [Traceability matrix](traceability-matrix.md) | 24 requirements |
-| [Changelog](CHANGELOG.md) | 2 versions |
+| [Changelog](CHANGELOG.md) | 3 versions |
 <!-- sdlc:auto:end contents -->
 
 ## Open gaps
@@ -95,7 +95,20 @@ Core behaviour it cannot ship without:
 
 ### Development
 
-- Development phase has not started (or no implementation input was provided); there are no tickets, sprint plans, or code to document.
+- No explicit mapping is provided of which backlog items (US-xxx) were assigned to which sprint number -- only thematic overlap between sprint goals and epics can be inferred.
+- No record of actual sprint execution, velocity achieved, or whether sprints completed as planned.
+- No explicit item-to-sprint assignment given; alignment to EPIC-001/US-024 is inferred from goal wording only.
+- No completion or acceptance record for this sprint.
+- No explicit item-to-sprint assignment given; alignment is inferred from goal wording only.
+- No completion status, code review, or test evidence provided for any item in this epic.
+- Overnight-shift attribution rule referenced in US-007-T1 is not itself defined in the input -- its specifics are undocumented.
+- No completion status, code review, or test evidence provided for this epic.
+- 'Optional' nature of the missing clock-out reminder (US-016) is not elaborated -- unclear whether it is a per-org or per-employee toggle.
+- CSV column/format specification is not given in the input.
+- No named regulation (e.g. GDPR) or specific compliance standard was supplied with the input despite the 'GDPR-style' phrasing used in the project description, so compliance coverage cannot be formally traced here.
+- No ticket/item completion status provided for any of the 24 stories or their sub-tasks.
+- No code artifacts, PR links, or commit history provided.
+- No indication of whether Sprint 1-6 dates have actually occurred or are still pending.
 
 ### Testing
 
