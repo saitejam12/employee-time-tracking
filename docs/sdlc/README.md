@@ -45,7 +45,7 @@ Core behaviour it cannot ship without:
 - Record a timestamp for each clock-in and clock-out per employee.
 - Track break start/stop between clock-in and clock
 
-**Documentation version:** v3
+**Documentation version:** v1
 <!-- sdlc:auto:end overview -->
 
 ## Contents
@@ -54,23 +54,23 @@ Core behaviour it cannot ship without:
 | Document | State |
 |---|---|
 | [Requirements](requirements/README.md) | v1 approved |
-| [Architecture](architecture/README.md) | 15 entries |
-| [Development](development/README.md) | 18 entries |
+| [Architecture](architecture/README.md) | 9 entries |
+| [Development](development/README.md) | 11 entries |
 | [Testing](testing/README.md) | 1 entry |
 | [Deployment](deployment/README.md) | 1 entry |
 | [Maintenance](maintenance/README.md) | 1 entry |
 | [Data model](architecture/data-model.md) | generated |
 | [API (OpenAPI)](architecture/api/openapi.yaml) | generated |
 | [Decisions (ADRs)](architecture/adr/README.md) | 4 decisions |
-| [Sprint plan](development/sprint-plan.md) | 6 sprints |
-| [Developer guide](development/developer-guide.md) | generated |
-| [API reference](development/api-reference.md) | 1 route |
+| [Sprint plan](development/sprint-plan.md) | 7 sprints |
+| [Developer guide](development/developer-guide.md) | not generated yet |
+| [API reference](development/api-reference.md) | 0 routes |
 | [Test report](testing/test-report.md) | not run yet |
 | [Deployment guide](deployment/deployment-guide.md) | not deployed yet |
 | [Runbook](deployment/runbook.md) | not deployed yet |
 | [Release notes](deployment/release-notes.md) | 0 releases |
 | [Traceability matrix](traceability-matrix.md) | 24 requirements |
-| [Changelog](CHANGELOG.md) | 3 versions |
+| [Changelog](CHANGELOG.md) | 1 version |
 <!-- sdlc:auto:end contents -->
 
 ## Open gaps
@@ -78,47 +78,38 @@ Core behaviour it cannot ship without:
 <!-- sdlc:auto:start open-gaps -->
 ### Requirements
 
-- Password policy criteria (length/complexity rules) referenced in AC-005/NFR-004 are not defined anywhere in the input.
-- JWT/session expiry and system-logout mechanics (distinct from attendance clock-out) are not specified.
-- Honour-system clock-in (NFR-015) is an accepted risk with no location/device verification — accuracy depends entirely on manager review and the correction workflow; confirm this residual risk is acceptable.
-- The interaction between daily and weekly overtime thresholds (e.g., whether hours already counted as daily overtime are excluded from the weekly regular total to avoid double-counting) is not specified.
-- Exact grace period (if any) before an employee is flagged late is not specified — AC-027 implies an immediate flag at expected start time with no stated tolerance window.
-- The default/expected value for the 'reasonable window' before a missing clock-out reminder fires is not stated in requirements (architecture later models it as org_settings.reminder_window_hours with no default given).
-- WCAG accessibility, called out by the healthcare domain skill for patient-facing apps, is not addressed anywhere for this internal staff tool — confirm whether an accessibility NFR is actually needed.
-- No business-associate agreements (BAAs) are mentioned for vendors (SendGrid, AWS) despite the healthcare industry label; since no PHI is stored this may not be legally required, but should be confirmed with legal/compliance.
-- HL7/FHIR/DICOM interoperability and FDA SaMD/EU MDR medical-device rules from the domain skill do not appear applicable since there is no EHR integration or clinical data — confirm this is intentionally out of scope rather than unaddressed.
+- Concrete password complexity/length policy referenced by AC-005/NFR-004 is not defined in the input.
+- The 'no PHI / not a medical device' classification is asserted in the requirements but not shown as confirmed by a compliance/legal reviewer -- recommend explicit human sign-off given the project is tagged Healthcare industry (see top-level gaps).
 
 ### Architecture
 
-- Industry context is stated as healthcare but no regulation list (e.g. HIPAA) or domain skill checklist was provided in this input -- a human should confirm whether any healthcare-specific regulations apply beyond the GDPR-style baseline implemented, since the requirements assert no PHI is stored.
-- No explicit mapping from architecture decisions to specific US-00x requirement IDs was provided; traceability to the 24 known requirement keys needs confirmation.
+- No explicit AWS region or data-residency configuration is specified, despite the stated mixed-region GDPR-style rationale for choosing AWS -- flagged for formalisation as the org grows.
+- No explicit region, backup/retention schedule, or disaster-recovery target is stated for RDS/ElastiCache beyond 'standard availability'.
 
 ### Development
 
-- No explicit mapping is provided of which backlog items (US-xxx) were assigned to which sprint number -- only thematic overlap between sprint goals and epics can be inferred.
-- No record of actual sprint execution, velocity achieved, or whether sprints completed as planned.
-- No explicit item-to-sprint assignment given; alignment to EPIC-001/US-024 is inferred from goal wording only.
-- No completion or acceptance record for this sprint.
-- No explicit item-to-sprint assignment given; alignment is inferred from goal wording only.
-- No completion status, code review, or test evidence provided for any item in this epic.
-- Overnight-shift attribution rule referenced in US-007-T1 is not itself defined in the input -- its specifics are undocumented.
-- No completion status, code review, or test evidence provided for this epic.
-- 'Optional' nature of the missing clock-out reminder (US-016) is not elaborated -- unclear whether it is a per-org or per-employee toggle.
-- CSV column/format specification is not given in the input.
-- No named regulation (e.g. GDPR) or specific compliance standard was supplied with the input despite the 'GDPR-style' phrasing used in the project description, so compliance coverage cannot be formally traced here.
-- No ticket/item completion status provided for any of the 24 stories or their sub-tasks.
-- No code artifacts, PR links, or commit history provided.
-- No indication of whether Sprint 1-6 dates have actually occurred or are still pending.
+- The plan lists sprint goals and a separate backlog of epics/stories/tasks with points and assigned agent roles, but does not map specific backlog items to specific sprint numbers -- which items shipped in which sprint cannot be confirmed from this input.
+- No completion/status field (e.g. done, in-progress, blocked) was provided for any backlog item, so actual build progress against this plan is unknown.
+- No reported completion status for US-001/002/003 or their tasks.
+- No reported completion status for US-004/005/006 or their tasks.
+- No reported completion status for US-007/008 or their tasks.
+- No reported completion status for US-009.
+- No reported completion status for US-010/011/012.
+- No reported completion status for US-013/014 or their tasks.
+- No reported completion status for US-015/016 or their tasks.
+- No reported completion status for US-017/018/019/020 or their tasks.
+- No reported completion status for US-021.
+- No reported completion status for US-022/023/024.
 
 ### Testing
 
-- Testing phase has not started; no test strategy, cases, or results exist to document.
+- Testing phase has not started: no test plans, test cases, execution results, coverage data, or defect records were provided.
 
 ### Deployment
 
-- No deployment recorded yet; nothing to document for actual releases, environments, or rollout status.
+- No deployment recorded yet: no release, environment promotion, or rollout/rollback history was provided, despite an approved deployment architecture (ARCH-008) existing.
 
 ### Maintenance
 
-- Maintenance phase not reached; no post-deployment notes exist to document.
+- No maintenance phase input: no incidents, monitoring data, support tickets, or patch history were provided, consistent with no deployment having occurred yet.
 <!-- sdlc:auto:end open-gaps -->
